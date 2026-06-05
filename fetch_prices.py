@@ -17,7 +17,7 @@ Base.metadata.create_all(engine)
 SKINS = [
     "AK-47 | Redline (Field-Tested)",
     "AWP | Asiimov (Field-Tested)",
-    "M4A4 | Howl (Minimal Wear)"
+    "Karambit | Fade (Factory New)"
 ]
 
 def fetch_price(skin_name: str) -> dict:
@@ -32,6 +32,11 @@ def fetch_price(skin_name: str) -> dict:
     return response.json()
 
 def save_price(session, skin_name: str, data: dict):
+    # If there's no price data or the skin just isn't on the market, skip saving
+    if not data.get("lowest_price") and not data.get("median_price"):
+        print(f"Skipped: {skin_name} - no market data available")
+        return
+
     skin = session.query(Skin).filter_by(name = skin_name).first()
     if not skin:
         skin = Skin(name = skin_name, category = "rifle")
@@ -48,7 +53,7 @@ def save_price(session, skin_name: str, data: dict):
         price_usd = price,
         volume = volume,
         source = "steam",
-        recorded_at = datetime.datetime.utcnow()
+        recorded_at = datetime.datetime.now(datetime.UTC)
     )
     session.add(entry)
     session.commit()
