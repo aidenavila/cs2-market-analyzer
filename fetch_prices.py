@@ -6,6 +6,7 @@ from models.database import Base, Skin, PriceHistory
 import datetime
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -14,11 +15,10 @@ engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind = engine)
 Base.metadata.create_all(engine)
 
-SKINS = [
-    "AK-47 | Redline (Field-Tested)",
-    "AWP | Asiimov (Field-Tested)",
-    "Karambit | Fade (Factory New)"
-]
+with open("skins_list.json", "r") as f:
+    SKINS = json.load(f)
+
+print(f"loaded {len(SKINS)} skins from skins_list.json")
 
 def fetch_price(skin_name: str) -> dict:
     url = "https://steamcommunity.com/market/priceoverview/"
@@ -64,7 +64,7 @@ def run():
     session = Session()
     print(f"Fetching {len(SKINS)} skins...")
     for skin_name in SKINS:
-        print(f"Fetching {skin_name}...")
+        print(f"[{SKINS.index(skin_name) + 1}/{len(SKINS)}] Fetching {skin_name}...")
         try:
             data = fetch_price(skin_name)
             print(f"Got data: {data}")
