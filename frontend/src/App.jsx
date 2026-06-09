@@ -9,6 +9,7 @@ export default function App() {
   const [selectedSkin, setSelectedSkin] = useState(null)
   const [history, setHistory] = useState([])
   const [search, setSearch] = useState("")
+  const [signal, setSignal] = useState(null)
 
   useEffect(() => {
     axios.get(`${API}/skins`).then(res => setSkins(res.data))
@@ -22,6 +23,16 @@ export default function App() {
           date: new Date(h.recorded_at).toLocaleDateString(),
           price: h.price
         })))
+      }).catch(err => {
+        console.error("History fetch failed:", err)
+        setHistory([])
+      })
+
+      axios.get(`${API}/skins/${selectedSkin.id}/signal`).then(res => {
+        setSignal(res.data)
+      }).catch(err => {
+        console.error("Signal fetch failed:", err)
+        setSignal(null)
       })
     }
   }, [selectedSkin])
@@ -32,7 +43,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif", background: "#0f1115", color: "#e0e0e0" }}>
-      
+
       {/* Sidebar */}
       <div style={{ width: "300px", borderRight: "1px solid #2a2a2a", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #2a2a2a" }}>
@@ -71,6 +82,26 @@ export default function App() {
         {selectedSkin ? (
           <>
             <h2 style={{ marginTop: 0, color: "#e4b84d" }}>{selectedSkin.name}</h2>
+            {signal && signal.signal !== "insufficient_data" && (
+              <div style={{
+                display: "inline-block",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontSize: "13px",
+                fontWeight: "bold",
+                marginBottom: "16px",
+                background: signal.signal === "buy" ? "#1b3a2b" : signal.signal === "sell" ? "#3a1b1b" : "#2a2a2a",
+                color: signal.signal === "buy" ? "#4caf50" : signal.signal === "sell" ? "#f44336" : "#888",
+                border: `1px solid ${signal.signal === "buy" ? "#4caf50" : signal.signal === "sell" ? "#f44336" : "#444"}`
+              }}>
+                {signal.signal.toUpperCase()} · z-score {signal.z_score} · avg ${signal.mean}
+              </div>
+            )}
+            {signal && signal.signal === "insufficient_data" && (
+              <div style={{ color: "#666", fontSize: "13px", marginBottom: "16px" }}>
+                Not enough price history yet for a signal ({signal.data_points} data points)
+              </div>
+            )}
             {history.length > 0 ? (
               <>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
@@ -85,7 +116,7 @@ export default function App() {
                     <LineChart data={history}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                       <XAxis dataKey="date" stroke="#555" fontSize={12} />
-                      <YAxis stroke="#555" fontSize={12} tickFormatter={v => `$${v}`} domain={['auto', 'auto']}/>
+                      <YAxis stroke="#555" fontSize={12} tickFormatter={v => `$${v}`} domain={['auto', 'auto']} />
                       <Tooltip
                         contentStyle={{ background: "#1e2025", border: "1px solid #2a2a2a" }}
                         formatter={v => [`$${v}`, "Price"]}
