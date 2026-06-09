@@ -32,6 +32,9 @@ def fetch_price(skin_name: str) -> dict:
     return response.json()
 
 def save_price(session, skin_name: str, data: dict):
+    if data is None:
+        print(f"Skipped: {skin_name} - no response from Steam")
+        return
     # If there's no price data or the skin just isn't on the market, skip saving
     if not data.get("lowest_price") and not data.get("median_price"):
         print(f"Skipped: {skin_name} - no market data available")
@@ -39,7 +42,8 @@ def save_price(session, skin_name: str, data: dict):
 
     skin = session.query(Skin).filter_by(name = skin_name).first()
     if not skin:
-        skin = Skin(name = skin_name, category = "rifle")
+        from categorize import categorize_skin
+        skin = Skin(name=skin_name, category=categorize_skin(skin_name))
         session.add(skin)
         session.commit()
 
@@ -73,7 +77,7 @@ def run():
             import traceback
             traceback.print_exc()
             print(f"Error fetching {skin_name}: {e}")
-        time.sleep(3)
+        time.sleep(5)
     session.close()
     print("Done!")
 
