@@ -4,7 +4,7 @@ import statistics
 MIN_DATA_POINTS = 5
 
 # How many standard deviations from the mean counts as a signal
-Z_THRESHOLD = 2.0
+Z_THRESHOLD = 0.5
 
 def compute_signal(prices: list[float]) -> dict:
     
