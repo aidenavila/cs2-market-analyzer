@@ -9,6 +9,7 @@ class Skin(Base):
     id = Column(Integer, primary_key = True)
     name = Column(String, unique = True)
     category = Column(String)
+    icon_url = Column(String, nullable = True)
 
 class PriceHistory(Base):
     __tablename__ = "price_history"

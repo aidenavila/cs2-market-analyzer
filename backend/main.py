@@ -20,7 +20,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -39,7 +39,7 @@ def root():
 @app.get("/skins")
 def get_skins(db: Session = Depends(get_db)):
     skins = db.query(Skin).all()
-    return [{"id": s.id, "name": s.name, "category": s.category} for s in skins]
+    return [{"id": s.id, "name": s.name, "category": s.category, "icon_url": s.icon_url} for s in skins]
 
 @app.get("/skins/{skin_id}/history")
 def get_price_history(skin_id: int, db: Session = Depends(get_db)):
